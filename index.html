@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Kelime Zinciri</title>
+<style>
+  :root{
+    --bg:#0f1220;
+    --bg2:#161a2e;
+    --gold:#e8b34c;
+    --gold-dim:#8a6a2c;
+    --text:#eef0f7;
+    --muted:#8b8fa8;
+    --danger:#e05a5a;
+    --ok:#4cc989;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top, var(--bg2), var(--bg) 60%);
+    color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:24px 16px 60px;
+  }
+  .logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:28px;
+    letter-spacing:1px;
+  }
+  .logo .link{
+    width:26px;height:26px;
+    border:3px solid var(--gold);
+    border-radius:8px;
+    transform:rotate(45deg);
+  }
+  .logo .link.b{ margin-left:-14px; border-color:var(--gold-dim); }
+  .logo h1{
+    font-size:22px;
+    font-weight:700;
+    margin:0;
+    color:var(--text);
+  }
+  .card{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:16px;
+    padding:28px 24px;
+    width:100%;
+    max-width:420px;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .hidden{display:none !important;}
+  label{
+    display:block;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  input[type=text]{
+    width:100%;
+    padding:14px 16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(0,0,0,0.25);
+    color:var(--text);
+    font-size:16px;
+    margin-bottom:18px;
+    outline:none;
+  }
+  input[type=text]:focus{ border-color:var(--gold); }
+  button{
+    width:100%;
+    padding:14px 16px;
+    border-radius:10px;
+    border:none;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:0.3px;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg, var(--gold), #c9902f);
+    color:#1a1200;
+    margin-bottom:12px;
+  }
+  .btn-primary:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn-secondary{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.15);
+    color:var(--text);
+  }
+  .divider{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:var(--muted);
+    font-size:12px;
+    margin:20px 0;
+  }
+  .divider::before,.divider::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:rgba(255,255,255,0.1);
+  }
+  .error{
+    color:var(--danger);
+    font-size:13px;
+    margin:-8px 0 14px;
+    min-height:16px;
+  }
+  /* LOBBY */
+  #lobbyScreen .code{
+    text-align:center;
+    margin-bottom:20px;
+  }
+  #lobbyScreen .code .label{ font-size:12px; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; }
+  #lobbyScreen .code .value{
+    font-size:40px;
+    font-weight:800;
+    letter-spacing:6px;
+    color:var(--gold);
+    margin-top:4px;
+  }
+  .player-list{ list-style:none; margin:0 0 20px; padding:0; }
+  .player-list li{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.03);
+    margin-bottom:8px;
+    font-size:15px;
+  }
+  .player-list li .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--ok);
+    flex-shrink:0;
+  }
+  .player-list li.dead{ opacity:0.4; text-decoration:line-through; }
+  .player-list li.dead .dot{ background:var(--danger); }
+  .player-list li .host-tag{
+    margin-left:auto;
+    font-size:10px;
+    color:var(--gold);
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .hint{ font-size:13px; color:var(--muted); text-align:center; margin-top:10px; }
+
+  /* GAME */
+  #gameScreen{ max-width:480px; }
+  .turn-banner{
+    text-align:center;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .turn-banner.mine{ color:var(--gold); }
+  .word-display{
+    text-align:center;
+    font-size:38px;
+    font-weight:800;
+    letter-spacing:1px;
+    margin:6px 0 4px;
+    min-height:48px;
+    word-break:break-word;
+  }
+  .next-letter{
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:18px;
+  }
+  .next-letter b{ color:var(--gold); font-size:16px; }
+  .timer-track{
+    height:8px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .timer-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--gold), var(--danger));
+    width:100%;
+    transition:width 0.2s linear;
+  }
+  .word-form{ display:flex; gap:8px; margin-bottom:20px; }
+  .word-form input{ margin-bottom:0; flex:1; }
+  .word-form button{ width:auto; padding:14px 20px; }
+  .used-words{
+    max-height:140px;
+    overflow-y:auto;
+    font-size:13px;
+    color:var(--muted);
+    background:rgba(0,0,0,0.2);
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:20px;
+    line-height:1.8;
+  }
+  .used-words span{
+    display:inline-block;
+    background:rgba(255,255,255,0.05);
+    border-radius:6px;
+    padding:2px 8px;
+    margin:2px 4px 2px 0;
+  }
+  .sidebar-title{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .winner-box{
+    text-align:center;
+    padding:20px 0;
+  }
+  .winner-box .trophy{ font-size:48px; margin-bottom:10px; }
+  .winner-box .name{ font-size:24px; font-weight:800; color:var(--gold); margin-bottom:20px; }
+  .footer-note{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:24px;
+    text-align:center;
+    max-width:420px;
+  }
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="link a"></div><div class="link b"></div>
+  <h1>Kelime Zinciri</h1>
+</div>
+
+<!-- HOME -->
+<div class="card" id="homeScreen">
+  <label for="nameInput">Adın</label>
+  <input type="text" id="nameInput" maxlength="16" placeholder="örn. Ayşe">
+
+  <button class="btn-primary" id="createBtn">Oda Kur</button>
+
+  <div class="divider">veya</div>
+
+  <label for="codeInput">Oda Kodu</label>
+  <input type="text" id="codeInput" maxlength="5" placeholder="örn. AB3K" style="text-transform:uppercase;letter-spacing:3px;">
+  <div class="error" id="homeError"></div>
+  <button class="btn-secondary" id="joinBtn">Odaya Katıl</button>
+</div>
+
+<!-- LOBBY -->
+<div class="card hidden" id="lobbyScreen">
+  <div class="code">
+    <div class="label">Oda Kodu</div>
+    <div class="value" id="roomCodeLabel">----</div>
+  </div>
+  <div class="sidebar-title">Oyuncular</div>
+  <ul class="player-list" id="lobbyPlayerList"></ul>
+  <button class="btn-primary hidden" id="startBtn">Oyunu Başlat</button>
+  <div class="hint" id="lobbyHint">Arkadaşların odaya katılsın, en az 2 kişi olunca host başlatabilir.</div>
+</div>
+
+<!-- GAME -->
+<div class="card hidden" id="gameScreen">
+  <div class="turn-banner" id="turnBanner">—</div>
+  <div class="word-display" id="wordDisplay">başla!</div>
+  <div class="next-letter" id="nextLetterHint">&nbsp;</div>
+  <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+
+  <form class="word-form" id="wordForm">
+    <input type="text" id="wordInput" placeholder="kelimeni yaz..." autocomplete="off">
+    <button class="btn-primary" type="submit" style="margin:0;">Gönder</button>
+  </form>
+  <div class="error" id="gameError"></div>
+
+  <div class="sidebar-title">Kullanılan Kelimeler</div>
+  <div class="used-words" id="usedWords">—</div>
+
+  <div class="sidebar-title">Oyuncular</div>
+  <ul class="player-list" id="gamePlayerList"></ul>
+</div>
+
+<!-- WINNER -->
+<div class="card hidden" id="winnerScreen">
+  <div class="winner-box">
+    <div class="trophy">🏆</div>
+    <div class="name" id="winnerName">—</div>
+    <button class="btn-primary hidden" id="restartBtn">Yeni Oyun</button>
+    <div class="hint" id="restartHint">Host yeni oyunu başlatabilir.</div>
+  </div>
+</div>
+
+<div class="footer-note">Kurallar: Önceki kelimenin son harfiyle başlayan bir kelime yaz. Süre 15 saniye. Süresi dolan ya da geçersiz kelime yazan elenir.</div>
+
+<!-- Firebase (compat SDK, script-tag usage — GitHub Pages friendly, no build step) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAwECkZIx1Ie5e2pQe9GDhF6U3Q0j72JsU",
+  authDomain: "kelime-zinciri-69c0c.firebaseapp.com",
+  databaseURL: "https://kelime-zinciri-69c0c-default-rtdb.firebaseio.com",
+  projectId: "kelime-zinciri-69c0c",
+  storageBucket: "kelime-zinciri-69c0c.firebasestorage.app",
+  messagingSenderId: "180549700377",
+  appId: "1:180549700377:web:3df9ce43e5b2f764d51388"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const TURN_SECONDS = 15;
+const TR_LOWER = (s) => s.replace(/I/g,'ı').toLowerCase();
+
+let state = {
+  roomCode: null,
+  playerId: null,
+  playerName: null,
+  isHost: false,
+  roomRef: null,
+  timerInterval: null,
+};
+
+// ---------- helpers ----------
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let c = '';
+  for(let i=0;i<4;i++) c += chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+function genId(){
+  return 'p' + Math.random().toString(36).slice(2,10);
+}
+function showScreen(id){
+  ['homeScreen','lobbyScreen','gameScreen','winnerScreen'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+function setError(el, msg){
+  document.getElementById(el).textContent = msg || '';
+}
+
+// ---------- home screen ----------
+document.getElementById('createBtn').onclick = async () => {
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name){ setError('homeError','Önce adını yaz.'); return; }
+  setError('homeError','');
+  const code = genCode();
+  const pid = genId();
+  state.roomCode = code;
+  state.playerId = pid;
+  state.playerName = name;
+  state.isHost = true;
+
+  const roomRef = db.ref('rooms/' + code);
+  await roomRef.set({
+    status: 'waiting',
+    hostId: pid,
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    players: {
+      [pid]: { name, alive: true, order: 0, joinedAt: firebase.database.ServerValue.TIMESTAMP }
+    }
+  });
+  attachRoom(roomRef);
+};
+
+document.getElementById('joinBtn').onclick = async () => {
+  const name = document.getElementById('nameInput').value.trim();
+  const code = document.getElementById('codeInput').value.trim().toUpperCase();
+  if(!name){ setError('homeError','Önce adını yaz.'); return; }
+  if(!code){ setError('homeError','Oda kodunu gir.'); return; }
+  setError('homeError','');
+
+  const roomRef = db.ref('rooms/' + code);
+  const snap = await roomRef.get();
+  if(!snap.exists()){ setError('homeError','Böyle bir oda yok.'); return; }
+  const room = snap.val();
+  if(room.status === 'playing'){ setError('homeError','Bu oda zaten oyunda.'); return; }
+
+  const pid = genId();
+  const existing = room.players ? Object.keys(room.players).length : 0;
+  state.roomCode = code;
+  state.playerId = pid;
+  state.playerName = name;
+  state.isHost = false;
+
+  await roomRef.child('players/' + pid).set({
+    name, alive: true, order: existing, joinedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  attachRoom(roomRef);
+};
+
+// ---------- room subscription ----------
+function attachRoom(roomRef){
+  state.roomRef = roomRef;
+  roomRef.on('value', (snap) => {
+    const room = snap.val();
+    if(!room) return;
+    renderRoom(room);
+  });
+}
+
+function orderedPlayers(room){
+  const players = room.players || {};
+  return Object.entries(players)
+    .map(([id, p]) => ({ id, ...p }))
+    .sort((a,b) => (a.order||0) - (b.order||0));
+}
+
+function renderRoom(room){
+  if(room.status === 'waiting'){
+    renderLobby(room);
+  } else if(room.status === 'playing'){
+    renderGame(room);
+  } else if(room.status === 'finished'){
+    renderWinner(room);
+  }
+}
+
+// ---------- lobby ----------
+function renderLobby(room){
+  showScreen('lobbyScreen');
+  document.getElementById('roomCodeLabel').textContent = state.roomCode;
+  const list = document.getElementById('lobbyPlayerList');
+  const players = orderedPlayers(room);
+  list.innerHTML = players.map(p => `
+    <li>
+      <span class="dot"></span>
+      <span>${escapeHtml(p.name)}</span>
+      ${p.id === room.hostId ? '<span class="host-tag">Host</span>' : ''}
+    </li>
+  `).join('');
+
+  const startBtn = document.getElementById('startBtn');
+  const hint = document.getElementById('lobbyHint');
+  const amHost = state.playerId === room.hostId;
+  if(amHost){
+    startBtn.classList.remove('hidden');
+    startBtn.disabled = players.length < 2;
+    startBtn.textContent = players.length < 2 ? 'En az 2 oyuncu gerekli' : 'Oyunu Başlat';
+    hint.classList.add('hidden');
+  } else {
+    startBtn.classList.add('hidden');
+    hint.classList.remove('hidden');
+  }
+}
+
+document.getElementById('startBtn').onclick = async () => {
+  const snap = await state.roomRef.get();
+  const room = snap.val();
+  const players = orderedPlayers(room).map(p => p.id);
+  if(players.length < 2) return;
+  await state.roomRef.update({
+    status: 'playing',
+    game: {
+      currentWord: '',
+      lastLetter: '',
+      turnOrder: players,
+      turnIndex: 0,
+      currentTurnPid: players[0],
+      turnStartedAt: firebase.database.ServerValue.TIMESTAMP,
+      usedWords: { '_seed': true },
+      winnerPid: null
+    }
+  });
+};
+
+// ---------- game ----------
+function renderGame(room){
+  showScreen('gameScreen');
+  const game = room.game;
+  if(!game) return;
+
+  const players = orderedPlayers(room);
+  const playerMap = {};
+  players.forEach(p => playerMap[p.id] = p);
+
+  const myTurn = game.currentTurnPid === state.playerId;
+  const turnBanner = document.getElementById('turnBanner');
+  const currentPlayer = playerMap[game.currentTurnPid];
+  turnBanner.textContent = myTurn ? 'SIRA SENDE' : `Sıra: ${currentPlayer ? currentPlayer.name : '...'}`;
+  turnBanner.classList.toggle('mine', myTurn);
+
+  document.getElementById('wordDisplay').textContent = game.currentWord || 'başla!';
+  const hint = document.getElementById('nextLetterHint');
+  hint.innerHTML = game.lastLetter
+    ? `Sonraki kelime <b>"${game.lastLetter.toUpperCase()}"</b> ile başlamalı`
+    : 'İlk kelimeyi yaz, oyunu başlat';
+
+  const form = document.getElementById('wordForm');
+  const input = document.getElementById('wordInput');
+  input.disabled = !myTurn;
+  form.querySelector('button').disabled = !myTurn;
+  input.placeholder = myTurn ? 'kelimeni yaz...' : 'sırasını bekle...';
+
+  const used = Object.keys(game.usedWords || {}).filter(w => w !== '_seed');
+  document.getElementById('usedWords').innerHTML = used.length
+    ? used.map(w => `<span>${escapeHtml(w)}</span>`).join('')
+    : 'Henüz kelime yok.';
+
+  const list = document.getElementById('gamePlayerList');
+  list.innerHTML = players.map(p => `
+    <li class="${p.alive === false ? 'dead' : ''}">
+      <span class="dot"></span>
+      <span>${escapeHtml(p.name)}</span>
+      ${p.id === game.currentTurnPid && p.alive !== false ? '<span class="host-tag">Sırada</span>' : ''}
+    </li>
+  `).join('');
+
+  runTimer(game);
+}
+
+function runTimer(game){
+  clearInterval(state.timerInterval);
+  const fill = document.getElementById('timerFill');
+  const startedAt = game.turnStartedAt || Date.now();
+
+  function tick(){
+    const elapsed = (Date.now() - startedAt) / 1000;
+    const remaining = Math.max(0, TURN_SECONDS - elapsed);
+    fill.style.width = (remaining / TURN_SECONDS * 100) + '%';
+    if(remaining <= 0){
+      clearInterval(state.timerInterval);
+      if(game.currentTurnPid === state.playerId){
+        handleTimeout(game);
+      } else {
+        setTimeout(() => attemptFallbackTimeout(game), 2500);
+      }
+    }
+  }
+  tick();
+  state.timerInterval = setInterval(tick, 200);
+}
+
+async function attemptFallbackTimeout(game){
+  const snap = await state.roomRef.child('game').get();
+  const fresh = snap.val();
+  if(fresh && fresh.turnStartedAt === game.turnStartedAt){
+    handleTimeout(fresh);
+  }
+}
+
+async function handleTimeout(game){
+  await advanceAfterElimination(game, game.currentTurnPid);
+}
+
+document.getElementById('wordForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const input = document.getElementById('wordInput');
+  const raw = input.value.trim();
+  setError('gameError','');
+  if(!raw) return;
+
+  const snap = await state.roomRef.get();
+  const room = snap.val();
+  const game = room.game;
+  if(game.currentTurnPid !== state.playerId) return;
+
+  const word = TR_LOWER(raw);
+  if(word.length < 2){ setError('gameError','Kelime çok kısa.'); return; }
+  if(game.lastLetter && word[0] !== game.lastLetter){
+    setError('gameError', `Kelime "${game.lastLetter.toUpperCase()}" ile başlamalı.`);
+    return;
+  }
+  if(game.usedWords && game.usedWords[word]){
+    setError('gameError','Bu kelime zaten kullanıldı.');
+    return;
+  }
+
+  input.value = '';
+  const lastChar = word[word.length - 1];
+  const players = orderedPlayers(room);
+  const nextPid = getNextAlivePid(players, game.turnOrder, game.turnIndex);
+
+  await state.roomRef.child('game').update({
+    currentWord: raw,
+    lastLetter: lastChar,
+    [`usedWords/${word}`]: true,
+    currentTurnPid: nextPid.pid,
+    turnIndex: nextPid.index,
+    turnStartedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+};
+
+function getNextAlivePid(players, turnOrder, currentIndex){
+  const n = turnOrder.length;
+  for(let step = 1; step <= n; step++){
+    const idx = (currentIndex + step) % n;
+    const pid = turnOrder[idx];
+    const player = players.find(p => p.id === pid);
+    if(player && player.alive !== false){
+      return { pid, index: idx };
+    }
+  }
+  return { pid: turnOrder[currentIndex], index: currentIndex };
+}
+
+async function advanceAfterElimination(game, eliminatedPid){
+  const snap = await state.roomRef.get();
+  const room = snap.val();
+  if(!room || !room.game || room.game.turnStartedAt !== game.turnStartedAt) return;
+  const players = orderedPlayers(room);
+
+  await state.roomRef.child(`players/${eliminatedPid}/alive`).set(false);
+
+  const alivePlayers = players.filter(p => p.id === eliminatedPid ? false : p.alive !== false);
+
+  if(alivePlayers.length <= 1){
+    const winner = alivePlayers[0];
+    await state.roomRef.update({
+      status: 'finished',
+      'game/winnerPid': winner ? winner.id : null
+    });
+    return;
+  }
+
+  const updatedPlayers = players.map(p => p.id === eliminatedPid ? {...p, alive:false} : p);
+  const next = getNextAlivePid(updatedPlayers, game.turnOrder, game.turnIndex);
+
+  await state.roomRef.child('game').update({
+    currentTurnPid: next.pid,
+    turnIndex: next.index,
+    turnStartedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+}
+
+// ---------- winner ----------
+function renderWinner(room){
+  showScreen('winnerScreen');
+  const game = room.game || {};
+  const players = room.players || {};
+  const winner = game.winnerPid ? players[game.winnerPid] : null;
+  document.getElementById('winnerName').textContent = winner ? `${winner.name} kazandı! 🎉` : 'Oyun bitti';
+
+  const amHost = state.playerId === room.hostId;
+  document.getElementById('restartBtn').classList.toggle('hidden', !amHost);
+  document.getElementById('restartHint').classList.toggle('hidden', amHost);
+}
+
+document.getElementById('restartBtn').onclick = async () => {
+  const snap = await state.roomRef.get();
+  const room = snap.val();
+  const players = orderedPlayers(room);
+  const resetPlayers = {};
+  players.forEach(p => { resetPlayers[p.id] = { ...p, alive: true }; delete resetPlayers[p.id].id; });
+  await state.roomRef.update({
+    status: 'waiting',
+    players: resetPlayers,
+    game: null
+  });
+};
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+</script>
+</body>
+</html>
